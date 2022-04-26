@@ -11,9 +11,8 @@ const MaxCan = 470;
 let tiles = [];
 let HP = 5;
 let Gold = 0;
-let colors = ["blue", "brown", "lightgreen", "green"];
 
-let buyportion;
+
 
 
 let EscapePosX = 50 * Math.floor(Math.random() * 9)
@@ -44,16 +43,22 @@ let Shop = {
     left: ShopPosX + arcRadius, right: ShopPosX + 2 * arcRadius, top: EscapePosY + arcRadius, bottom: EscapePosY + arcRadius * 2
 }
 
+let colors = {
+    blue: "blue", green: "green", lightgreen: "lightgreen", brown: "brown"
+}
+
 
     
 
-class tile {
-    constructor(left, top, right, bottom, color) {
+class Tile {
+    constructor(left, top, right, bottom) {
         this.left = left;
         this.top = top;
         this.right = right;
         this.bottom = bottom;
-        this.color = color;
+        this.color = "black";
+        this.sight = false; 
+        this.visit = false;     
     }
 
     draw() {
@@ -63,53 +68,126 @@ class tile {
     }
 }
 
+
+
+
 function drawTiles() {
-    context.beginPath();
     for(let i = 0; i < tileRow; i++) { 
         for(let j = 0; j < tileCol; j++) {
+            context.beginPath();
             tiles[i][j].draw();
+            context.closePath();
         }
     }
-    context.closePath();
+    
 }
 
+let randomTiles;
+
 function setTiles() {
+
     for(let i = 0; i < tileRow; i++) {
         tiles[i] = [];
         for(let j = 0; j < tileCol; j++) {
-            tiles[i][j] = new tile(j * (tileWidth + 10), 
-            i * (tileHeight + 10), j * (tileWidth + 10) + 40, i * (tileHeight + 10) + 40, "blue");
+            randomTiles = Math.floor(Math.random() * 4)
+            tiles[i][j] = new Tile(j * (tileWidth + 10), 
+            i * (tileHeight + 10), j * (tileWidth + 10) + 40, i * (tileHeight + 10) + 40);
+      
+        }     
+    }
+
+}
+
+function SightFunc() {
+    
+    for(let i = 0; i < tileRow; i++) {
+        for(let j = 0; j < tileCol; j++) {
+            if(isCollisionRectToRect(player, tiles[i][j])) {
+                tiles[i][j].sight = true;
+                randomTiles = Math.floor(Math.random() * 4)
+                if(randomTiles == 0 && tiles[i][j].sight == true) {        
+                    tiles[i][j].color = "blue";
+                } else if(randomTiles == 1 && tiles[i][j].sight == true) {         
+                    tiles[i][j].color =  "green";
+                } else if(randomTiles == 2 && tiles[i][j].sight == true) {
+                    tiles[i][j].color = "lightgreen"
+                } else if(randomTiles == 3 && tiles[i][j].sight == true) {
+                    tiles[i][j].color = "brown"
+                }
+            }
         }
     }
 }
 
+
+
 document.addEventListener('keydown', keyDownEventHandler);
 
+function isCollisionRectToRect(rectA, rectB) {
+    if (rectA.left > rectB.right + 50 ||
+        rectA.right + 50 < rectB.left ||
+        rectA.top > rectB.bottom + 50||
+        rectA.bottom + 50 < rectB.top) {
+        return false;
+    } //안겹친다
+
+    return true; // 겹친다
+}
+
+function isCollisionRectToRect2(rectA, rectB) {
+    if (rectA.left > rectB.right ||
+        rectA.right < rectB.left ||
+        rectA.top > rectB.bottom ||
+        rectA.bottom < rectB.top) {
+        return false;
+    } //안겹친다
+
+    return true; // 겹친다
+}
+
+
 function keyDownEventHandler(e) {
+
+
     if(e.key == 'ArrowRight') {
      if(playerPosX < MaxCan) {
         playerPosX += 50;
+        MetShop()
+        MeetMonsterPer()
+        SightFunc()
     }
     } else if(e.key == "ArrowLeft") {
         if(playerPosX > arcRadius) {
         playerPosX -= 50;
+        MetShop()
+        MeetMonsterPer()
+        SightFunc()
     }
     } else if(e.key == "ArrowDown") {
         if(playerPosY < MaxCan) {
         playerPosY += 50;
+        MetShop()
+        MeetMonsterPer()
+        SightFunc()
     }
     } else if(e.key == "ArrowUp") {
         if(playerPosY > arcRadius) {
         playerPosY -= 50;
-    }   
+        MetShop()
+        MeetMonsterPer()
+        SightFunc()
+    } 
     }
 
-    if(e.key == "ArrowRight" ||
-       e.key == "ArrowLeft" ||
-       e.key == "ArrowDown" ||
-       e.key == "ArrowUp") {
-        MeetMonsterPer()
-       }
+    if(e.key == "Enter") {
+        console.log(tiles);
+    }
+
+       player.top = playerPosY - 20
+       player.bottom = playerPosY + 20
+       player.left = playerPosX - 20
+       player.right = playerPosX + 20
+
 }
 
 function scissors() {
@@ -208,14 +286,33 @@ function UpdateHPGold() {
     document.getElementById('CurrentGold').innerHTML = `Gold : ${Gold}`
 }
 
+
 function MeetMonsterPer() {
-    let MeetPer = Math.floor(Math.random() * 8);
-    if(MeetPer < 1){
+    for(i = 0; i < tileRow; i++) {
+        for(j = 0; j < tileCol; j++) {
+            if(isCollisionRectToRect2(player, tiles[i][j])) {
+                if(tiles[i][j].color == "blue") {
+                    alert("blue");
+                } else if(tiles[i][j].color == "green") {
+                    alert("green!");
+                }
+            }
+        }
+    }
+    let MeetPer = Math.floor(Math.random() * 16);                           
+    if(MeetPer == 0 && 
+      (playerPosX != Shop.left &&
+       playerPosY != Shop.top)) {
     visibility1.style.visibility = "visible";
     visibility2.style.visibility = "visible";
-    visibility3.style.visibility = "visible";
-    alert("MetMonster");
+    visibility3.style.visibility = "visible";   
     MeetPer = Math.floor(Math.random() * 8);
+    alert("작은 몬스터를 만났습니다 가위 바위 보를 이기세요 (승리 시 : 0~ 100골드 랜덤 지급 , 패배 시 : HP -1 ");
+    } else if (MeetPer == 1 && 
+        (playerPosX != Shop.left &&
+         playerPosY != Shop.top)) {
+    alert("거대한 몬스터를 만났습니다. 몬스터와 같은 숫자를 입력하면 승리 ( 승리시 : 100 ~ 300골드 랜덤 지급, 패배시 HP -3"); 
+
     } else {
         visibility1.style.visibility = "hidden";
         visibility2.style.visibility = "hidden";
@@ -238,47 +335,57 @@ function Escape() {
 }
 
 function MetShop() {
-        prompt("몇개의 포션을 구매 하시겠습니까? ( HP 1 회복, Gold : 50 소모 )", buyportion)
-        console.log(buyportion); 
-}
+    if(playerPosX == Shop.left &&
+        playerPosY == Shop.top) {
+            let buyportion1 = prompt("몇개의 포션을 구매 하시겠습니까? ( HP 1 회복, Gold : 50 소모 )") 
+            let buyportion = parseInt(buyportion1) 
+            if(Gold > buyportion * 50) {               
+                HP += buyportion
+                Gold -= buyportion * 50
+            } else {                
+                alert(`보유 골드가 부족합니다. `);
+            }
+        }                      
+    }
+
 
 
 
 function draw() {
     context.clearRect(0, 0, canvas.width, canvas.height)
-    setTiles();
     drawTiles()
-    drawEscape()
-    drawShop()
-    drawPlayer()
     update()
-    
+    drawPlayer()
+    drawShop()
+    drawEscape()  
 }
 
 
 
 function drawPlayer() {
-    context.beginPath();
-    context.arc(playerPosX, playerPosY, arcRadius, 0, 2 * Math.PI);
-    context.fillStyle = 'red';
-    context.fill();
-    context.closePath();
+    let PlayerImage = new Image();
+    PlayerImage.src = "player.png"
+    PlayerImage.onload = function () {
+    context.drawImage(PlayerImage,playerPosX - 20, playerPosY - 20, tileWidth, tileHeight);
+}
 }
 
 function drawEscape() {
-    context.beginPath();
-    context.arc(escapeRoom.left, escapeRoom.top, arcRadius, 0, 2 * Math.PI);
-    context.fillStyle = 'pink';
-    context.fill();
-    context.closePath();
+    let ExitImage = new Image();
+    ExitImage.src = "Exit.png"
+    ExitImage.onload = function () {
+    context.drawImage(ExitImage, escapeRoom.left - 20, escapeRoom.top - 20, tileWidth, tileHeight);
+    }
 }
 
 function drawShop() {
-    context.beginPath();
-    context.arc(Shop.left, Shop.top, arcRadius, 0, 2 * Math.PI);
-    context.fillStyle = 'black';
-    context.fill();
-    context.closePath();
+    let ShopImage = new Image();
+    ShopImage.src = "shop.png"
+    ShopImage.onload = function () {
+    context.drawImage(ShopImage, Shop.left - 20, Shop.top - 20, tileWidth, tileHeight);
+    }   
 }
 
-setInterval(draw, 10) 
+setTiles();
+setInterval(draw, 100) 
+
