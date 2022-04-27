@@ -538,7 +538,7 @@ function PlayerGold() {
 }
 
 function UpdateHPGold() {
-    if(HP == 0) {
+    if(HP <= 0) {
         window.location.reload(true);
         alert("Game Over")
     }
